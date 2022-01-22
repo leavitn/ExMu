@@ -1,0 +1,4 @@
+%{
+  "crypto_rand": {:hex, :crypto_rand, "1.0.3", "8773799e3ed124ce8a81feb935fffbeb3b6621ea2b841c2bbaff4fd09752fd66", [:mix], [], "hexpm", "701a76fea71119fe60aea02f50191bf82a60cb687046931e4d6de6acb8da1685"},
+  "puid": {:hex, :puid, "1.1.2", "4acf2a576afc5896c393459d259e733ad20dd96c969152fcddb68f35c1f5ba4a", [:mix], [{:crypto_rand, "~> 1.0", [hex: :crypto_rand, repo: "hexpm", optional: false]}], "hexpm", "fbd1691e29e576c4fbf23852f4d256774702ad1f2a91b37e4344f7c278f1ffaa"},
+}
