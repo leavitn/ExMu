@@ -20,7 +20,7 @@ defmodule Mud.World.Zone do
   alias World.{Zone.State, RoomServer}
 
   def start_link(zone_id) do
-    IO.puts "Starting zone #{zone_id}"
+    IO.puts "Starting zone #{inspect zone_id}"
     GenServer.start_link(__MODULE__, zone_id, name: via_tuple(zone_id))
   end
 
@@ -40,8 +40,9 @@ defmodule Mud.World.Zone do
   end
 
   defp get_zones(event) do
-    {_, to, _} = event.to_room
-    {_, from, _} = event.from_room
+    id = fn {world, zone, _} -> {world, zone} end
+    to = id.(event.to_room)
+    from = id.(event.from_room)
     {to, from}
   end
 

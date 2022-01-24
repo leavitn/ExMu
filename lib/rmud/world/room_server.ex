@@ -5,6 +5,7 @@ defmodule Mud.World.RoomServer do
   use GenServer
 
   def start_link(id) do
+    IO.puts("starting room #{inspect id}")
     GenServer.start_link(__MODULE__, id, name: via_tuple(id))
   end
 
@@ -21,20 +22,16 @@ defmodule Mud.World.RoomServer do
   end
 
   def event(event) do
-    case get_rooms(event) do
-      {same, same} -> raise "Room events to the same room not yet supported" #TODO
-      _ -> Zone.event(event)
+    cond do
+      event.to_room == event.from_room ->
+        raise "Room events to the same room not yet supported" #TODO
+      true ->
+        Zone.event(event)
     end
   end
 
   def input(id, input) do
     GenServer.cast(via_tuple(id), {:input, input})
-  end
-
-  defp get_rooms(event) do
-    {_, _, to} = event.to_room
-    {_, _, from} = event.from_room
-    {to, from}
   end
 
   # implementation functions
@@ -45,7 +42,7 @@ defmodule Mud.World.RoomServer do
   end
 
   @impl true
-  def handle_continue({:get_room}, id) do
+  def handle_continue(:get_room, id) do
     {:noreply, Repo.room(id)}
   end
 
@@ -59,7 +56,7 @@ defmodule Mud.World.RoomServer do
   @impl true
   def handle_cast({:event, event}, state) do
     module = Module.concat(Room, Event.module(event))
-    state = module.process(event)
+    state = module.process(event, state)
     {:noreply, state}
   end
 

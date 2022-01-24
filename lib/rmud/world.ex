@@ -3,7 +3,7 @@ defmodule Mud.World do
     Negotiates inter-zone events such as movement between zones, doors, ranged attacks, etc.
   """
   alias Mud.{Registry, World.ZoneSupervisor, World.RoomSupervisor}
-  alias Mud.World.Room
+
   use DynamicSupervisor
 
   def start_link(world_id) do
@@ -19,14 +19,14 @@ defmodule Mud.World do
     DynamicSupervisor.start_child(via_tuple(world_id), {ZoneSupervisor, zone_id})
   end
 
-  def start_room({_, zone_id, room_id} = id) do
+  def start_room(zone_id, room_id) do
     RoomSupervisor.start_room(zone_id, room_id)
   end
 
-  defp zone_pid({world_id, zone_id, _}) do
-    with {:error, {:already_started, pid}} <- start_zone(world_id, zone_id), do:
-      pid
-  end
+#  defp zone_pid({world_id, zone_id, _}) do
+#    with {:error, {:already_started, pid}} <- start_zone(world_id, zone_id), do:
+#      pid
+#  end
 
   @impl true
   def init(_) do

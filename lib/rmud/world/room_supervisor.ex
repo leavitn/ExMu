@@ -1,10 +1,10 @@
 defmodule Mud.World.RoomSupervisor do
-  alias Mud.{Registry, World.RoomServer}
+  alias Mud.Registry
+  alias Mud.World.RoomServer
 
   use DynamicSupervisor
 
   def start_link(zone_id) do
-    IO.puts "starting Room Supervisor for zone #{zone_id}"
     DynamicSupervisor.start_link(__MODULE__, zone_id, name: via_tuple(zone_id))
   end
 
@@ -12,8 +12,10 @@ defmodule Mud.World.RoomSupervisor do
     Registry.via_tuple({__MODULE__, zone_id})
   end
 
-  def start_room(zone_id, room_id) do
-    DynamicSupervisor.start_child(via_tuple(zone_id), {RoomServer, room_id})
+  def start_room(zone_id, id) do
+    IO.puts "attempting to start room #{inspect id} in zone #{inspect zone_id}"
+    #spec = %{id: {RoomServer, id}, start: {RoomServer, :start_link, [id]}}
+    DynamicSupervisor.start_child(via_tuple(zone_id), {RoomServer, id})
   end
 
   @impl true

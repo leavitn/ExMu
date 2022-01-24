@@ -5,7 +5,7 @@ defmodule Mud.World.ZoneSupervisor do
   use Supervisor
 
   def start_link(zone_id) do
-    IO.puts "starting Zone Supervisor for zone #{zone_id}"
+    IO.puts "starting Zone Supervisor for zone #{inspect zone_id}"
     Supervisor.start_link(__MODULE__, zone_id, name: via_tuple(zone_id))
   end
 
@@ -24,7 +24,7 @@ defmodule Mud.World.ZoneSupervisor do
 
   def child_spec(zone_id) do
     %{
-      id: {__MODULE__, zone_id},
+      id: __MODULE__,
       start: {__MODULE__, :start_link, [zone_id]},
       type: :supervisor
     }
