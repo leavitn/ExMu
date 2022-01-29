@@ -6,6 +6,6 @@ defmodule Mud.World.Event do
   def module({_, event}), do: type(event)
 
   defp type(%{__struct__: module}) do
-    Module.split(module) |> Enum.reverse() |> List.first()
+    Module.split(module) |> List.last()
   end
 end

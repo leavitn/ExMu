@@ -16,8 +16,8 @@ defmodule Mud.World.RoomServer do
   def event(id, {status, _} = event) do
     pid = via_tuple(id)
     case status do
-      :reject -> GenServer.cast(pid, {:event, event})
-      x when x in [:notify, :commit] -> GenServer.call(pid, {:event, event})
+      x when x in [:init, :reject] -> GenServer.cast(pid, {:event, event})
+      x when x in [:request, :commit] -> GenServer.call(pid, {:event, event})
     end
   end
 
@@ -28,6 +28,14 @@ defmodule Mud.World.RoomServer do
       true ->
         Zone.event(event)
     end
+  end
+
+  def operation(id, data) do
+    GenServer.cast(via_tuple(id), {:operation, data})
+  end
+
+  def get(id) do
+    GenServer.call(via_tuple(id), :get)
   end
 
   def input(id, input) do
@@ -47,6 +55,11 @@ defmodule Mud.World.RoomServer do
   end
 
   @impl true
+  def handle_cast({:operation, data}, state) do
+    {:noreply, apply(data.module, data.fun, [state | data.args])}
+  end
+
+  @impl true
   def handle_cast({:input, _parsed_term}, state) do
     #{events, state} = parsed_term |> Commands.process()
     #notify(events)
@@ -56,8 +69,7 @@ defmodule Mud.World.RoomServer do
   @impl true
   def handle_cast({:event, event}, state) do
     module = Module.concat(Room, Event.module(event))
-    state = module.process(event, state)
-    {:noreply, state}
+    {:noreply, module.process(event, state)}
   end
 
   @impl true
@@ -65,6 +77,11 @@ defmodule Mud.World.RoomServer do
     module = Module.concat(Room, Event.module(event))
     {reply, state} = module.process(event, state)
     {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_call(:get, _, state) do
+    {:reply, state, state}
   end
 
 end

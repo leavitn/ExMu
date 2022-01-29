@@ -1,10 +1,18 @@
 defmodule Mud.Id do
+
   use Puid
 
-  def type_to_lead(type) do
+  alias Mud.Character.Mob
+
+  def create(type) do
+    type(type) <> generate()
+  end
+
+  def type(type) do
     case type do
-      Mud.World.Item -> "I#"
-      Mud.World.Mob  -> "M#" 
+      Mob  -> "M#"
+      _ -> ""
     end
   end
+
 end

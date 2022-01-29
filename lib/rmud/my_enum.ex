@@ -3,16 +3,16 @@ defmodule Mud.MyEnum do
 
   @doc "ignores the first n - 1 matches"
   def query(list, n, phrase) do
-    MyEnum.find_nth(list, n, fn obj ->
+    find_nth(list, n, fn obj ->
       Enum.any?(get_search_data(obj), &(&1 == phrase))
     end)
   end
 
   defp get_search_data(obj) do
     case obj do
+      %{name: name, noun: nil, aliases: aliases} -> [name | aliases]
+      %{name: nil, noun: noun, aliases: aliases} -> [noun | aliases]
       %{name: name, noun: noun, aliases: aliases} -> [name, noun | aliases]
-      %{name: name, aliases: aliases} -> [name | aliases]
-      %{noun: noun, aliases: aliases} -> [noun | aliases]
       %{keyword: keyword} -> [keyword]
     end
   end

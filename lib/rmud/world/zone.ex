@@ -1,7 +1,6 @@
 defmodule Mud.World.Zone.State do
   defstruct [:id, mob_lookup: %{}]
 
-  def init(opts), do: struct!(__MODULE__, opts)
   def update_mob_location(state, mob_id, room_id) do
     new_lookup = Map.put(state.mob_lookup, mob_id, room_id)
     Map.put(state, :lookup, new_lookup)
@@ -16,8 +15,8 @@ defmodule Mud.World.Zone do
   """
 
   use GenServer
-  alias Mud.{Registry, World}
-  alias World.{Zone.State, RoomServer}
+  alias Mud.Registry
+  alias __MODULE__
 
   def start_link(zone_id) do
     IO.puts "Starting zone #{inspect zone_id}"
@@ -32,9 +31,9 @@ defmodule Mud.World.Zone do
     GenServer.cast(via_tuple(zone_id), {:event, event})
   end
 
-  def event(event) do
+  def event({status, event}) do
     case get_zones(event) do
-      {same, same} -> event(same, event)
+      {same, same} -> event(same, {status, event})
       _ -> raise "Multiple zones not yet supported" # World.event(event) TODO
     end
   end
@@ -50,23 +49,47 @@ defmodule Mud.World.Zone do
 
   @impl true
   def init(zone_id) do
-    {:ok, State.init(id: zone_id)}
+    {:ok, struct!(Zone.State, id: zone_id)}
   end
 
-  def handle_cast({:event, {:init, _} = event}, _, state) do
-    {:noreply, handle_event(event, state)}
+  @impl true
+  def handle_cast({:event, event}, state) do
+    {:noreply, Zone.Event.handle_event(event, state)}
+  end
+end
+
+defmodule Mud.World.Zone.Event do
+  alias Mud.World.RoomServer
+  alias Mud.World.Zone.State
+
+  @moduledoc """
+    Event information is kept in {:status, event} format
+    Events are initiated with either :init or :coerce
+      init: Event is initiated, send :request to to_room, received :accept or :reject in response
+        case :reject -> send error to requester
+        case :accept -> send :commit to the to_room and from_room
+      coerce: Force event. Do NOT send :request. Immediately send :commit to_room and from_room
+  """
+
+  def handle_event({:init, event}, state) do
+    RoomServer.event(event.to_room, {:request, event}) # reply will be :accept or :reject
+    |> handle_event(state)
   end
 
-  defp handle_event({:init, event}, state) do
-    case RoomServer.event(event.to_room, {:request, event}) do
-      {:reject, event} ->
-        RoomServer.event(event.from_room, {:reject, event})
-        state
-      {:accept, event} ->
-        :ok = RoomServer.event(event.from_room, {:commit, event})
-        :ok = RoomServer.event(event.to_room, {:commit, event})
-        State.update_mob_location(state, event.character.id, event.to_room)
-    end
+  # coerce = don't ask for permission, force the event
+  def handle_event({:coerce, event}, state) do
+    handle_event({:accept, event}, state)
+  end
+
+  def handle_event({:reject, event}, state) do
+    RoomServer.event(event.from_room, {:reject, event})
+    state
+  end
+
+  def handle_event({:accept, event}, state) do
+    :ok = RoomServer.event(event.from_room, {:commit, event})
+    :ok = RoomServer.event(event.to_room, {:commit, event})
+    State.update_mob_location(state, event.character.id, event.to_room)
   end
 
 end
