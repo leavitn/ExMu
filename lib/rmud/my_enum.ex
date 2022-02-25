@@ -8,14 +8,7 @@ defmodule Mud.MyEnum do
     end)
   end
 
-  defp get_search_data(obj) do
-    case obj do
-      %{name: name, noun: nil, aliases: aliases} -> [name | aliases]
-      %{name: nil, noun: noun, aliases: aliases} -> [noun | aliases]
-      %{name: name, noun: noun, aliases: aliases} -> [name, noun | aliases]
-      %{keyword: keyword} -> [keyword]
-    end
-  end
+  defp get_search_data(obj), do: [obj.render_text | obj.aliases]
 
   @doc "like Enum.find, except ignores the first n - 1 results"
   def find_nth(list, n, fun) when n < 2, do: Enum.find(list, fun)
@@ -41,6 +34,7 @@ defmodule Mud.MyEnum do
   def short_circuit([h | t], fun), do: fun.(h) || short_circuit(t, fun)
 
   @doc "given a map and a keyword list, add the contents of the keyword list to the map"
+  def list_to_map(list) when is_list(list), do: list_to_map(Map.new, list)
   def list_to_map(map, list) do
     Enum.reduce(list, map, fn {key, val}, map ->
       Map.put(map, key, val)

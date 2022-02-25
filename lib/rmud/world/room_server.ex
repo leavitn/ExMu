@@ -16,7 +16,7 @@ defmodule Mud.World.RoomServer do
   def event(id, {status, _} = event) do
     pid = via_tuple(id)
     case status do
-      x when x in [:init, :reject] -> GenServer.cast(pid, {:event, event})
+      :init -> GenServer.cast(pid, {:event, event})
       x when x in [:request, :commit] -> GenServer.call(pid, {:event, event})
     end
   end

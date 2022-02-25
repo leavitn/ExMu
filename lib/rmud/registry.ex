@@ -9,9 +9,7 @@ defmodule Mud.Registry do
   end
 
   def alive?({:via, Registry, key}), do: alive?(key)
-  def alive?(key) do
-    Registry.lookup(__MODULE__, key) != []
-  end
+  def alive?(key), do: Registry.lookup(__MODULE__, key) != []
 
   def child_spec(_) do
     Supervisor.child_spec(

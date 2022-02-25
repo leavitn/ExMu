@@ -1,6 +1,6 @@
 defmodule Mud.World.Room.Exit do
 
-  @defaults [:keyword, :from_room, :to_room, obvious?: true]
+  @defaults [:keyword, :from_room, :to_room, obvious?: true, dangerous?: false]
 
   defstruct @defaults
 
@@ -22,6 +22,8 @@ defmodule Mud.World.Room.Exit do
       :south -> 1
       :east  -> 2
       :west  -> 3
+      :up    -> 4
+      :down  -> 5
       _ -> 99
     end
   end

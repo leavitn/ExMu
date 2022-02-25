@@ -27,8 +27,13 @@ defmodule Mud.World.Zone do
     Registry.via_tuple({__MODULE__, zone_id})
   end
 
-  def event(zone_id, event) do
-    GenServer.cast(via_tuple(zone_id), {:event, event})
+  def event(zone_id, {status, _} = event) do
+    case status do
+      x when x in [:init, :coerce] ->
+        GenServer.cast(via_tuple(zone_id), {:event, event})
+      :request ->
+        GenServer.call(via_tuple(zone_id), {:event, event})
+    end
   end
 
   def event({status, event}) do
@@ -54,7 +59,13 @@ defmodule Mud.World.Zone do
 
   @impl true
   def handle_cast({:event, event}, state) do
-    {:noreply, Zone.Event.handle_event(event, state)}
+    {:noreply, Zone.Event.process(event, state)}
+  end
+
+  @impl true
+  def handle_call({:event, event}, _, state) do
+    {reply, state} = Zone.Event.consider(event, state)
+    {:reply, reply, state}
   end
 end
 
@@ -63,33 +74,35 @@ defmodule Mud.World.Zone.Event do
   alias Mud.World.Zone.State
 
   @moduledoc """
-    Event information is kept in {:status, event} format
+    Event information is communicated in format {:status, event}
     Events are initiated with either :init or :coerce
-      init: Event is initiated, send :request to to_room, received :accept or :reject in response
-        case :reject -> send error to requester
-        case :accept -> send :commit to the to_room and from_room
+      init: Event request initiated by from_room,
+        send :request to to_room, receive either :accept or :reject in response:
+          case :reject -> send error to from_room
+          case :accept -> send :commit to the to_room and from_room
       coerce: Force event. Do NOT send :request. Immediately send :commit to_room and from_room
   """
 
-  def handle_event({:init, event}, state) do
+  def process({:init, event}, state) do
     RoomServer.event(event.to_room, {:request, event}) # reply will be :accept or :reject
-    |> handle_event(state)
+    |> handle_reply(state)
   end
 
-  # coerce = don't ask for permission, force the event
-  def handle_event({:coerce, event}, state) do
-    handle_event({:accept, event}, state)
+  def consider({:request, event}, state) do
+    # function for deciding whether to :accept or :reject request
+    {{:accept, event}, state}
   end
 
-  def handle_event({:reject, event}, state) do
-    RoomServer.event(event.from_room, {:reject, event})
-    state
-  end
-
-  def handle_event({:accept, event}, state) do
-    :ok = RoomServer.event(event.from_room, {:commit, event})
-    :ok = RoomServer.event(event.to_room, {:commit, event})
-    State.update_mob_location(state, event.character.id, event.to_room)
+  def handle_reply({status, event}, state) when status in [:accept, :reject] do
+    case status do
+      :reject ->
+        RoomServer.event(event.from_room, {:reject, event})
+        state
+      :accept ->
+        :ok = RoomServer.event(event.from_room, {:commit, event})
+        :ok = RoomServer.event(event.to_room, {:commit, event})
+        State.update_mob_location(state, event.character.id, event.to_room)
+    end
   end
 
 end

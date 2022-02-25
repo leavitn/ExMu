@@ -1,4 +1,15 @@
 defmodule Mud.World.Room.Movement do
+
+  @moduledoc """
+    Event information is communicated in format {:status, event}
+    Events are initiated with either :init or :coerce
+      init: Event request initiated by from_room,
+        send :request to to_room, receive either :accept or :reject in response:
+          case :reject -> send error to from_room
+          case :accept -> send :commit to the to_room and from_room
+      coerce: Force event. Do NOT send :request. Immediately send :commit to_room and from_room
+  """
+
   alias Mud.World.{Room, Room.Content, Event, Zone}
 
   def init(room, character, to_room) when is_binary(character) do
@@ -7,15 +18,9 @@ defmodule Mud.World.Room.Movement do
     room
   end
 
-  def coerce(room, character, to_room) do
-    {:coerce, event_data(room, character, to_room)}
-    |> Zone.event()
-    room
-  end
-
   defp event_data(room, character, to_room) do
     args = [
-      character: Content.query(room, :mobs, character),
+      object: Content.query(room, :mobs, character),
       to_room: to_room,
       from_room: room.id
     ]

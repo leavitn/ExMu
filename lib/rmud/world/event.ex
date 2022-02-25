@@ -1,5 +1,5 @@
 defmodule Mud.World.Event.Movement do
-  defstruct [:to_room, :from_room, :character, :reason]
+  defstruct [:to_room, :from_room, :object, :reason]
 end
 
 defmodule Mud.World.Event do

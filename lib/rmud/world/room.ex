@@ -1,42 +1,34 @@
-defmodule Mud.World.Room do
-
-  alias __MODULE__
-  alias __MODULE__.{Exit, Content}
-  alias Mud.MyEnum
-
-  defstruct [:name, :id, exits: %{}, obvious_exits: [], content: %{}]
-
-  def new(opts) do
-    struct!(__MODULE__, opts)
-    |> Map.put(:content, struct!(__MODULE__.Content, []))
-    |> update_obvious_exits()
-  end
-
-  defp update_obvious_exits(%{exits: %{}} = room), do: room
-  defp update_obvious_exits(room) do
-    obvious =
-      room.exits
-      |> Map.values()
-      |> Stream.filter(&(&1.obvious?))
-      |> Stream.map(&(&1.keyword))
-      |> Exit.sort()
-    %Room{room | obvious_exits: obvious}
-  end
-
+defmodule Mud.World.Room.Content.Mob do
+  defstruct [:id, :render_text, :aliases]
 end
 
 defmodule Mud.World.Room.Content do
-  alias Mud.{World.Room, MyEnum, Character.Mob}
-  defstruct mobs: []
+  alias Mud.{World.Room, MyEnum}
+  alias __MODULE__.{Mob}
+
+  defstruct features: [], users: [], mobs: [], items: []
+
+  # spawns an object in a room
+  def spawn(room, type, template) do
+    IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
+    object = apply(Mud.Repo, type, [template])
+    IO.inspect object
+    create(room, object)
+  end
 
   @doc "returns the result of a keyword search for an object in a room"
-  def query(room, list_name, n \\ 1, phrase) do
+  def query(room, list_name, n \\ 1, phrase)
+  def query(room, :all, n, phrase) do
+    [:features, :users, :mobs, :items]
+    |> MyEnum.short_circuit(&query(room, &1, n, phrase))
+  end
+  def query(room, list_name, n, phrase) do
     room.content
     |> Map.get(list_name, [])
     |> MyEnum.query(n, phrase)
   end
 
-  @doc "returns the result of a id search for an object in a room"
+  @doc "returns the result of an id search for an object in a room"
   def lookup(room, list_name, id) do
     room.content
     |> Map.get(list_name, [])
@@ -55,14 +47,18 @@ defmodule Mud.World.Room.Content do
   def create(room, object) do
     list_name = list_name(object)
     list = Map.get(room.content, list_name, [])
-    put_in(room.content[list_name], [object | list])
+    new_content = Map.put(room.content, list_name, [object | list])
+    Map.put(room, :content, new_content)
   end
 
   @doc "deletes an object from a room"
   def delete(room, object) do
-    list = list_name(object)
-    revised_list = Enum.reject(room.content[list], &(&1.id == object.id))
-    put_in(room.content[list], revised_list)
+    list_name = list_name(object)
+    revised_list =
+      Map.get(room.content, list_name, [])
+      |> Enum.reject(&(&1.id == object.id))
+    new_content = Map.put(room.content, list_name, revised_list)
+    Map.put(room, :content, new_content)
   end
 
   defp list_name(obj) do
@@ -74,14 +70,32 @@ defmodule Mud.World.Room.Content do
 
 end
 
-defmodule Mud.World.Room.Operations do
-  alias Mud.World.Room
-  alias Room.Content
+defmodule Mud.World.Room do
+  alias __MODULE__
+  alias __MODULE__.{Exit, Content}
 
-  @spec spawn(%Room{}, :mob | :item, String.t()) :: %Room{}
-  def spawn(room, type, template) do
-    IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
-    object = apply(Mud.Repo, type, [template])
-    Content.create(room, object)
+  defstruct [
+    :name,
+    :id,
+    exits: %{},
+    obvious_exits: [],
+    content: struct!(Content)
+  ]
+
+  def new(opts) do
+    struct!(__MODULE__, opts)
+    |> update_obvious_exits()
   end
+
+  defp update_obvious_exits(%{exits: %{}} = room), do: room
+  defp update_obvious_exits(room) do
+    obvious =
+      room.exits
+      |> Map.values()
+      |> Stream.filter(&(&1.obvious?))
+      |> Stream.map(&(&1.keyword))
+      |> Exit.sort()
+    %Room{room | obvious_exits: obvious}
+  end
+
 end

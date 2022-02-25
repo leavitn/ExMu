@@ -1,5 +1,8 @@
 defmodule Mud do
-  alias Mud.World
+  alias Mud.{World}
+
+  @default_loc {1,1,1}
+
   def system_start(id) do
     children = [
       Mud.Registry,
@@ -16,7 +19,7 @@ defmodule Mud do
 
   def spawn() do
     op = %{
-      module: Mud.World.Room.Operations,
+      module: Mud.World.Room.Content,
       fun: :spawn,
       args: [:mob, "orc captain"]
     }
@@ -36,5 +39,5 @@ defmodule Mud do
   def room_id(world_id, zone_id, room_id), do: {world_id, zone_id, room_id}
   def zone_id(world_id, zone_id), do: {world_id, zone_id}
 
-
+  def default_location(), do: @default_loc
 end

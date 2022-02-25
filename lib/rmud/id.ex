@@ -10,8 +10,15 @@ defmodule Mud.Id do
 
   def type(type) do
     case type do
-      Mob  -> "M#"
+      Mob  -> "m#"
       _ -> ""
+    end
+  end
+
+  def id_to_type(id) do
+    case id do
+      "m#" <> _ -> :mob
+      "i#" <> _ -> :item
     end
   end
 
