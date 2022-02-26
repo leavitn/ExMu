@@ -2,28 +2,9 @@ defmodule Mud.World.Room.InfoTest do
   use ExUnit.Case
 
   import Mud.World.Room.Info
+  import Mud.Test.MockData.Room
 
-  alias Mud.World.Room
-  alias Room.{Content, Exit}
-
-  def mock_data() do
-    mock_room()
-    |> Content.create(mock_mob())
-  end
-
-  def mock_room() do
-    south = struct!(Exit, keyword: :south, from_room: 1, to_room: 2)
-    struct!(Room, name: "North Room", exits: %{south: south}, id: 1)
-  end
-
-  def mock_mob() do
-    args = [
-      id: 1,
-      render_text: "orc captain",
-      aliases: ["orc", "captain"]
-    ]
-    struct!(Content.Mob, args)
-  end
+  alias Mud.World.Room.Exit
 
   test "get mob" do
     mock_data = mock_data()
