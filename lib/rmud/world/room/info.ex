@@ -2,10 +2,8 @@ defmodule Mud.World.Room.Info do
   alias Mud.World.Room.Content
 
   def get_any(room, n \\ 1, phrase) do
-    with {:error, _} <- get_exit(room, phrase),
-         {:error, _} <- get_mob(room, n, phrase),
-         {:error, _} <- get_item(room, n, phrase), do:
-        {:error, :not_found}
+    Content.query(room, :all, n, phrase)
+    |> error(:not_found)
   end
 
   def get_exit_to_room(room, keyword) do
