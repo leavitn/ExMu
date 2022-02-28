@@ -36,16 +36,15 @@ end
 defmodule Mud.Test.MockData.ParsedTerm do
   alias Mud.Test.MockData
   alias Mud.MyEnum
+  alias Mud.Character.Input.InputTerm
 
-  def parsed_term(verb, opts) do
+  def input_term(verb, opts) do
     mock_room = MockData.Room.mock_data()
-    %{
+    parsed_term = %{
       verb: verb,
       state: mock_room,
-      events: [],
-      witnesses: [],
-      pattern: []
     }
-    |> MyEnum.list_to_map(opts)
+    parsed_term = MyEnum.list_to_map(parsed_term, opts)
+    |> InputTerm.new()
   end
 end
