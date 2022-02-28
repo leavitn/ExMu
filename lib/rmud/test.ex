@@ -21,4 +21,17 @@ defmodule Mud.Test.MockData.Room do
     ]
     struct!(Content.Mob, args)
   end
+
+  defmodule Mud.Test.MockData.ParsedTerm do
+    alias Mud.Test.MockData
+    alias Mud.MyEnum
+
+    def parsed_term(verb, opts) do
+      %{
+        verb: verb,
+        state: MockData.Room.mock_data()
+      }
+      |> MyEnum.list_to_map(opts)
+    end
+  end
 end
