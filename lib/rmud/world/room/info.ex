@@ -1,12 +1,23 @@
 defmodule Mud.World.Room.Info do
   alias Mud.World.Room.Content
 
+  def get_occupants(room, filter) do
+    occupants = [room.contents.players | room.contents.mobs]
+    case filter do
+      :all ->
+        Enum.map(occupants, &(&1.id))
+      {:all_but, id} ->
+        Stream.map(occupants, &(&1.id))
+        |> Enum.reject(&(&1 == id))
+    end
+  end
+
   def get_any(room, n \\ 1, phrase) do
     Content.query(room, :all, n, phrase)
     |> error(:not_found)
   end
 
-  def get_exit_to_room(room, keyword) do
+  def get_exit_path(room, keyword) do
     with {:ok, ex} <- get_exit(room, keyword), do:
       {:ok, ex.to_room}
   end

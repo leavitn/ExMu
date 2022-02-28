@@ -32,7 +32,7 @@ defmodule Mud.World.Room.InfoTest do
   test "get subject" do
     mock_data = mock_data()
     {:ok, result} = mock_data |> get_subject(1)
-    {:error, error} = mock_data |> get_subject(2)
+    {:error, error} = mock_data |> get_subject(999)
     assert result == mock_mob()
     assert error == {:subject, :not_found}
   end
@@ -49,11 +49,11 @@ defmodule Mud.World.Room.InfoTest do
   end
 
   test "get exit to room" do
-    case mock_data() |> get_exit_to_room(:south) do
+    case mock_data() |> get_exit_path(:south) do
       {:ok, 2} -> assert true
       {:error, {:exit, :not_found}} -> assert false
     end
-    case mock_data() |> get_exit_to_room(:north) do
+    case mock_data() |> get_exit_path(:north) do
       {:error, {:exit, :not_found}} -> assert true
       {:ok, _north} -> assert false
     end

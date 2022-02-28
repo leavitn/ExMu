@@ -1,5 +1,15 @@
+defmodule Mud.World.Room.Content.Defaults do
+  @defaults [
+    :id, :render_text, aliases: [],
+    proper_noun?: false,
+    article_exception?: false
+  ]
+
+  def get(), do: @defaults
+end
+
 defmodule Mud.World.Room.Content.Mob do
-  defstruct [:id, :render_text, :aliases]
+  defstruct Mud.World.Room.Content.Defaults.get()
 end
 
 defmodule Mud.World.Room.Content do

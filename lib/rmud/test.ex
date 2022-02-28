@@ -6,6 +6,7 @@ defmodule Mud.Test.MockData.Room do
   def mock_data() do
     mock_room()
     |> Content.create(mock_mob())
+    |> Content.create(mock_mob2())
   end
 
   def mock_room() do
@@ -22,16 +23,29 @@ defmodule Mud.Test.MockData.Room do
     struct!(Content.Mob, args)
   end
 
-  defmodule Mud.Test.MockData.ParsedTerm do
-    alias Mud.Test.MockData
-    alias Mud.MyEnum
+  def mock_mob2() do
+    args = [
+      id: 2,
+      render_text: "beth",
+      proper_noun?: true
+    ]
+    struct!(Content.Mob, args)
+  end
+end
 
-    def parsed_term(verb, opts) do
-      %{
-        verb: verb,
-        state: MockData.Room.mock_data()
-      }
-      |> MyEnum.list_to_map(opts)
-    end
+defmodule Mud.Test.MockData.ParsedTerm do
+  alias Mud.Test.MockData
+  alias Mud.MyEnum
+
+  def parsed_term(verb, opts) do
+    mock_room = MockData.Room.mock_data()
+    %{
+      verb: verb,
+      state: mock_room,
+      events: [],
+      witnesses: [],
+      pattern: []
+    }
+    |> MyEnum.list_to_map(opts)
   end
 end
