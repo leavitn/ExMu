@@ -44,7 +44,7 @@ defmodule Mud.Test.MockData.ParsedTerm do
       verb: verb,
       state: mock_room,
     }
-    parsed_term = MyEnum.list_to_map(parsed_term, opts)
+    MyEnum.list_to_map(parsed_term, opts)
     |> InputTerm.new()
   end
 end

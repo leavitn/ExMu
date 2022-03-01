@@ -1,15 +1,11 @@
 defmodule Mud.World.Room.Info do
   alias Mud.World.Room.Content
 
-  def get_occupants(room, filter) do
-    occupants = [room.contents.players | room.contents.mobs]
-    case filter do
-      :all ->
-        Enum.map(occupants, &(&1.id))
-      {:all_but, id} ->
-        Stream.map(occupants, &(&1.id))
-        |> Enum.reject(&(&1 == id))
-    end
+  def get_mob_ids(room, []) do
+    result =
+      [room.content.users, room.content.mobs]
+      |> Enum.flat_map(&(&1.id))
+    {:ok, result}
   end
 
   def find_any(room, n \\ 1, phrase) do
