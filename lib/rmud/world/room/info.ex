@@ -12,32 +12,32 @@ defmodule Mud.World.Room.Info do
     end
   end
 
-  def get_any(room, n \\ 1, phrase) do
+  def find_any(room, n \\ 1, phrase) do
     Content.query(room, :all, n, phrase)
     |> error(:not_found)
   end
 
-  def get_exit_path(room, keyword) do
-    with {:ok, ex} <- get_exit(room, keyword), do:
+  def find_exit_path(room, keyword) do
+    with {:ok, ex} <- find_exit(room, keyword), do:
       {:ok, ex.to_room}
   end
 
-  def get_exit(room, keyword) do
+  def find_exit(room, keyword) do
     Map.get(room.exits, keyword)
     |> error({:exit, :not_found})
   end
 
-  def get_subject(room, id) do
+  def find_subject(room, id) do
     Content.lookup(room, :mobs, id)
     |> error({:subject, :not_found})
   end
 
-  def get_mob(room, n \\ 1, phrase) do
+  def find_mob(room, n \\ 1, phrase) do
     Content.query(room, :mobs, n, phrase)
     |> error({:mob, :not_found})
   end
 
-  def get_item(room, n \\ 1, phrase) do
+  def find_item(room, n \\ 1, phrase) do
     Content.query(room, :items, n, phrase)
     |> error({:item, :not_found})
   end

@@ -15,7 +15,6 @@ defmodule Mud.Character.Input.InputTerm do
   def update({:error, error}, _, _), do: {:error, error}
   def update(term, key, fun_name) do
     fun = get_fun(term, fun_name)
-
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
   end
@@ -40,6 +39,7 @@ defmodule Mud.Character.Input.InputTerm do
   defp get_fun(%{state: state}, fun_name) do
     module = Module.concat(state.__struct__, :Info)
     fn
+      :self -> {:ok, :self}
       val -> apply(module, fun_name, [state, val])
     end
   end
