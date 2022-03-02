@@ -20,7 +20,7 @@ defmodule Mud.World.Room.Movement do
 
   defp event_data(room, character, to_room) do
     args = [
-      object: Content.query(room, :mobs, character),
+      character: Content.query(room, :mobs, character),
       to_room: to_room,
       from_room: room.id
     ]
