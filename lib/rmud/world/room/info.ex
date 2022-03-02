@@ -3,8 +3,8 @@ defmodule Mud.World.Room.Info do
 
   def get_mob_ids(room, []) do
     result =
-      [room.content.users, room.content.mobs]
-      |> Enum.flat_map(&(&1.id))
+      room.content.users ++ room.content.mobs
+      |> Enum.map(&(&1.id))
     {:ok, result}
   end
 
