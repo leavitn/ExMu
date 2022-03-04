@@ -36,6 +36,12 @@ defmodule Mud.Character.Input.InputTerm do
   def put({:error, error}, _, _), do: {:error, error}
   def put(term, key, val), do: Map.put(term, key, val)
 
+  def put_and_update(term, key, val, update_fun_name) do
+    term
+    |> put(key, val)
+    |> update(key, update_fun_name)
+  end
+
   @spec witnesses(t, atom()) :: t
   defp witnesses(term, witness) do
     case witness do
