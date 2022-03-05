@@ -63,4 +63,9 @@ defmodule Mud.World.Room.InfoTest do
     keyword = mock_data() |> exit_keyword_lookup(2, :to_room)
     assert keyword == :south
   end
+
+  test "find command" do
+    {:ok, _} = get_verb_fun(mock_data(), :go)
+    assert true
+  end
 end
