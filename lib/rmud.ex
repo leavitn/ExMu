@@ -26,6 +26,21 @@ defmodule Mud do
     World.RoomServer.operation({1,1,1}, op)
   end
 
+  def move2() do
+    start()
+    spawn()
+
+    {:ok, mob} = Mud.World.Room.Info.find_mob(
+      Mud.World.RoomServer.get({1,1,1}),
+      "orc captain")
+    term = %{
+      subject: mob.id,
+      dobj: :south,
+      verb: :go
+    }
+    Mud.World.RoomServer.input({1,1,1}, term)
+  end
+
   def move() do
     spawn()
     op = %{

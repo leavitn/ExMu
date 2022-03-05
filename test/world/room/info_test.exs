@@ -66,6 +66,7 @@ defmodule Mud.World.Room.InfoTest do
 
   test "find command" do
     {:ok, _} = get_verb_fun(mock_data(), :go)
+    {:error, _ } = get_verb_fun(mock_data(), :error)
     assert true
   end
 end

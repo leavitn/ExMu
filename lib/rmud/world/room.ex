@@ -80,6 +80,24 @@ defmodule Mud.World.Room.Content do
 
 end
 
+defmodule Mud.World.Room.Commands do
+  alias Mud.World.Room.Info
+
+  @commands %{
+    go: true
+  }
+  def validate(verb), do: Map.get(@commands, verb, false)
+
+  def go(room, term) do
+    alias Mud.World.Room.Movement
+    with {:ok, character} <- Info.find_subject(room, term.subject),
+         {:ok, to_room} <- Info.find_exit_path(room, term.dobj) do
+      Movement.init(room, character, to_room)
+    end
+  end
+
+end
+
 defmodule Mud.World.Room do
   alias __MODULE__
   alias __MODULE__.{Exit, Content}
@@ -108,4 +126,8 @@ defmodule Mud.World.Room do
     %Room{room | obvious_exits: obvious}
   end
 
+  def handle_input(room, parsed_term) do
+    with {:ok, fun} <- __MODULE__.Info.get_verb_fun(room, parsed_term.verb), do:
+      fun.(parsed_term)
+  end
 end

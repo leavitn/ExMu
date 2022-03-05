@@ -30,16 +30,16 @@ defmodule Mud.World.RoomServer do
     end
   end
 
+  def input(id, term) do
+    GenServer.cast(via_tuple(id), {:input, term})
+  end
+
   def operation(id, data) do
     GenServer.cast(via_tuple(id), {:operation, data})
   end
 
   def get(id) do
     GenServer.call(via_tuple(id), :get)
-  end
-
-  def input(id, input) do
-    GenServer.cast(via_tuple(id), {:input, input})
   end
 
   # implementation functions
@@ -60,9 +60,16 @@ defmodule Mud.World.RoomServer do
   end
 
   @impl true
-  def handle_cast({:input, _parsed_term}, state) do
-    #{events, state} = parsed_term |> Commands.process()
-    #notify(events)
+  def handle_cast({:input, parsed_term}, state) do
+    state =
+      case Room.handle_input(state, parsed_term) do
+        :ok -> state
+        {:ok, new_state} -> new_state
+        {:error, error} ->
+          #Character.notify(parsed_term.subject, {:error, error})
+          IO.inspect error
+          state
+      end
     {:noreply, state}
   end
 
@@ -71,6 +78,7 @@ defmodule Mud.World.RoomServer do
     module = Module.concat(Room, Event.module(event))
     {:noreply, module.process(event, state)}
   end
+
 
   @impl true
   def handle_call({:event, event}, _, state) do

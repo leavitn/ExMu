@@ -10,21 +10,25 @@ defmodule Mud.World.Room.Movement do
       coerce: Force event. Do NOT send :request. Immediately send :commit to_room and from_room
   """
 
-  alias Mud.World.{Room, Room.Content, Event, Zone}
+  alias Mud.World.{Room, Room.Content, Room.Info, Event, Zone}
+  alias Mud.Character.Input
+  alias Input.{InputTerm, Pattern}
 
-  def init(room, character, to_room) when is_binary(character) do
+  # the parsed_term is NOT used for the event
+  # Reason: to reduce amount of data passed around via message passing
+  def init(room, character, to_room) do
     {:init, event_data(room, character, to_room)}
     |> Zone.event()
-    room
   end
 
   defp event_data(room, character, to_room) do
     args = [
-      character: Content.query(room, :mobs, character),
+      character: character,
       to_room: to_room,
       from_room: room.id
     ]
     struct!(Event.Movement, args)
+    |> tap(&IO.inspect(&1))
   end
 
   def process({:request, event}, %Room{} = state), do: {consider(event, state), state}
@@ -35,9 +39,45 @@ defmodule Mud.World.Room.Movement do
 
   defp commit(event, room) do
     cond do
-      event.from_room == room.id -> Content.delete(room, event.character)
-      event.to_room == room.id -> Content.create(room, event.character)
+      event.from_room == room.id -> depart(event, room)
+      event.to_room == room.id -> arrive(event, Content.create(room, event.character))
     end
   end
 
+  # input_term is created from event information
+  # more verbose than if the parsed_term was passed in the event
+  # but the reasoning is this reduces the amount of data deep copied between processes
+  defp depart(event, room) do
+    opts = [
+      subject: event.character,
+      verb: :leave,
+      dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
+      state: room
+    ]
+    opts
+    |> InputTerm.new()
+    |> InputTerm.notify(:all, Pattern.run(:standard))
+    |> Map.get(:events)
+    |> List.first()
+    |> IO.inspect # TODO replace with notification to Character processes
+
+    Content.delete(room, event.character)
+  end
+
+  defp arrive(event, room) do
+    opts = [
+      subject: event.character,
+      verb: :arrive,
+      dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
+      state: room
+    ]
+    opts
+    |> InputTerm.new()
+    |> InputTerm.notify(:all, Pattern.run(:arrive))
+    |> Map.get(:events)
+    |> List.first()
+    |> IO.inspect # TODO replace with notification to Character processes
+
+    room
+  end
 end

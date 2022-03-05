@@ -3,20 +3,25 @@ defmodule Mud.World.Room.Info do
 
   def get_verb_fun(room, verb) do
     alias Mud.World.Room.Commands
-    case Kernel.function_exported?(Commands, verb, 2) do # does function exist in module?
+    case Commands.validate(verb) do
       true -> {:ok, &apply(Commands, verb, [room, &1])}
       false -> {:error, {:command, :not_found}}
     end
+
   end
 
   @doc """
     returns the first exit key that matches room_id
   """
   def exit_keyword_lookup(room, room_id, side) when side in [:to_room, :from_room] do
-    room.exits
-    |> Map.values()
-    |> Enum.find(&Map.get(&1, side) == room_id)
-    |> Map.get(:keyword, :nowhere)
+    room_exit =
+      room.exits
+      |> Map.values()
+      |> Enum.find(&Map.get(&1, side) == room_id)
+    case room_exit do
+      %{} -> room_exit.keyword
+      _ -> :nowhere
+    end
   end
 
   def get_mob_ids(room, []) do
