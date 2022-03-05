@@ -8,6 +8,7 @@ defmodule Mud.Character.Input.InputTerm do
   @type error :: {:error, atom()} | {:error, {atom(), atom()}}
   @type t :: %__MODULE__{} | error
 
+  def new(opts) when is_list(opts), do: struct!(__MODULE__, opts)
   def new(parsed_term), do: struct!(__MODULE__, Map.to_list(parsed_term))
 
   @doc """
@@ -133,6 +134,7 @@ defmodule Mud.Character.Input.Pattern do
   defp _run(pattern) do
     case pattern do
       :standard -> [:subject, :verb, :dobj, ?.]
+      :arrive -> [:subject, :verb, "from the", :dobj, ?.]
       :iobj-> [:subject, :verb, :dobj, :preposition, :iobj, ?.]
       :dobj -> [:subject, :verb, :preposition, :dobj, ?.]
       :intransitive_dir -> [:dobj, :verb, :dir, ?.]

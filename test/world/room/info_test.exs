@@ -58,4 +58,9 @@ defmodule Mud.World.Room.InfoTest do
       {:ok, _north} -> assert false
     end
   end
+
+  test "exit keyword lookup" do
+    keyword = mock_data() |> exit_keyword_lookup(2, :to_room)
+    assert keyword == :south
+  end
 end
