@@ -26,8 +26,7 @@ defmodule Mud.Test.MockData.Room do
   def mock_mob2() do
     args = [
       id: 2,
-      render_text: "beth",
-      proper_noun?: true
+      render_text: "beth"
     ]
     struct!(Content.Mob, args)
   end

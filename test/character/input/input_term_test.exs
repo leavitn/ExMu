@@ -10,7 +10,7 @@ defmodule Mud.Character.Input.InputTermTest do
 
   test "update subject" do
     term = ParsedTerm.input_term(:look, subject: 1)
-    term = update(term, :subject, :find_subject)
+    term = update(term, :subject, :find_id)
     assert term.subject == Room.mock_mob()
   end
 
@@ -29,7 +29,7 @@ defmodule Mud.Character.Input.InputTermTest do
   test "notify" do
     term =
       ParsedTerm.input_term(:look, subject: 1, dobj: "beth")
-      |> update(:subject, :find_subject)
+      |> update(:subject, :find_id)
       |> update(:dobj, :find_mob)
       |> notify(:all, Pattern.run(:standard))
     case List.first(term.events) do

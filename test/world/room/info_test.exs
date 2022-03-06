@@ -29,10 +29,10 @@ defmodule Mud.World.Room.InfoTest do
     end
   end
 
-  test "get subject" do
+  test "get id" do
     mock_data = mock_data()
-    {:ok, result} = mock_data |> find_subject(1)
-    {:error, error} = mock_data |> find_subject(999)
+    {:ok, result} = mock_data |> find_id(1)
+    {:error, error} = mock_data |> find_id(999)
     assert result == mock_mob()
     assert error == {:subject, :not_found}
   end

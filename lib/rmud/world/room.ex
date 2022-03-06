@@ -88,7 +88,7 @@ defmodule Mud.World.Room.Commands do
 
   def go(room, term) do
     alias Mud.World.Room.Movement
-    with {:ok, character} <- Info.find_subject(room, term.subject),
+    with {:ok, character} <- Info.find_id(room, term.subject),
          {:ok, to_room} <- Info.find_exit_path(room, term.dobj) do
       Movement.init(room, character, to_room)
     end
