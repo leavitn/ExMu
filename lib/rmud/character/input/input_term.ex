@@ -134,7 +134,6 @@ defmodule Mud.Character.Input.Pattern do
   defp _run(pattern) do
     case pattern do
       :standard -> [:subject, :verb, :dobj, ?.]
-      :arrive -> [:subject, :verb, "from the", :dobj, ?.]
       :iobj-> [:subject, :verb, :dobj, :preposition, :iobj, ?.]
       :dobj -> [:subject, :verb, :preposition, :dobj, ?.]
       :intransitive_dir -> [:dobj, :verb, :dir, ?.]

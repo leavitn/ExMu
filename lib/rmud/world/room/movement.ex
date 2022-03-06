@@ -50,7 +50,7 @@ defmodule Mud.World.Room.Movement do
   defp depart(event, room) do
     opts = [
       subject: event.character,
-      verb: :leave,
+      verb: :depart,
       dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
       state: room
     ]
@@ -65,15 +65,16 @@ defmodule Mud.World.Room.Movement do
   end
 
   defp arrive(event, room) do
+    direction = Info.exit_keyword_lookup(room, event.to_room, :from_room)
     opts = [
       subject: event.character,
       verb: :arrive,
-      dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
+      dobj: direction,
       state: room
     ]
     opts
     |> InputTerm.new()
-    |> InputTerm.notify(:all, Pattern.run(:arrive))
+    |> InputTerm.notify(:all, Pattern.run(:dobj, preposition: "from the"))
     |> Map.get(:events)
     |> List.first()
     |> IO.inspect # TODO replace with notification to Character processes

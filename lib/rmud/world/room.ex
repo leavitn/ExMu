@@ -1,8 +1,6 @@
 defmodule Mud.World.Room.Content.Defaults do
   @defaults [
-    :id, :render_text, aliases: [],
-    proper_noun?: false,
-    article_exception?: false
+    :id, :render_text, aliases: []
   ]
 
   def get(), do: @defaults

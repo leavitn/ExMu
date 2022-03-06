@@ -26,7 +26,7 @@ defmodule Mud do
     World.RoomServer.operation({1,1,1}, op)
   end
 
-  def move2() do
+  def move() do
     start()
     spawn()
 
@@ -39,16 +39,6 @@ defmodule Mud do
       verb: :go
     }
     Mud.World.RoomServer.input({1,1,1}, term)
-  end
-
-  def move() do
-    spawn()
-    op = %{
-      module: Mud.World.Room.Movement,
-      fun: :init,
-      args: ["orc captain", {1,1,2}]
-    }
-    World.RoomServer.operation({1,1,1}, op)
   end
 
   def room_id(world_id, zone_id, room_id), do: {world_id, zone_id, room_id}
