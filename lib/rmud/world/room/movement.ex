@@ -40,7 +40,7 @@ defmodule Mud.World.Room.Movement do
   defp commit(event, room) do
     cond do
       event.from_room == room.id -> depart(event, room)
-      event.to_room == room.id -> arrive(event, Content.create(room, event.character))
+      event.to_room == room.id -> arrive(event, room)
     end
   end
 
@@ -59,7 +59,8 @@ defmodule Mud.World.Room.Movement do
     |> InputTerm.notify(:all, Pattern.run(:standard))
     |> Map.get(:events)
     |> List.first()
-    |> IO.inspect # TODO replace with notification to Character processes
+    |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes
+    |> IO.puts
 
     Content.delete(room, event.character)
   end
@@ -77,8 +78,9 @@ defmodule Mud.World.Room.Movement do
     |> InputTerm.notify(:all, Pattern.run(:dobj, preposition: "from the"))
     |> Map.get(:events)
     |> List.first()
-    |> IO.inspect # TODO replace with notification to Character processes
+    |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes
+    |> IO.puts
 
-    room
+    Content.create(room, event.character)
   end
 end

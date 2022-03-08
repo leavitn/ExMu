@@ -59,7 +59,7 @@ defmodule Mud.Character.Input.InputTerm do
   end
 
   @spec get!(t, atom()) :: t
-  defp get!(term, key) do
+  def get!(term, key) do
     case Map.fetch(term, key) do
       {:ok, val} -> val
       :error ->
