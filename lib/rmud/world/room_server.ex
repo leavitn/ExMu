@@ -30,6 +30,10 @@ defmodule Mud.World.RoomServer do
     end
   end
 
+  def spawn(id, obj_id, type, template_id) do
+    GenServer.cast(via_tuple(id), {:spawn, obj_id, type, template_id})
+  end
+
   def input(id, term) do
     GenServer.cast(via_tuple(id), {:input, term})
   end
@@ -79,6 +83,10 @@ defmodule Mud.World.RoomServer do
     {:noreply, module.process(event, state)}
   end
 
+  @impl true
+  def handle_cast({:spawn, obj_id, type, template_id}, state) do
+    {:noreply, Room.Content.spawn(state, obj_id, type, template_id)}
+  end
 
   @impl true
   def handle_call({:event, event}, _, state) do

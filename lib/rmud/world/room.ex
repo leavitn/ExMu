@@ -16,6 +16,13 @@ defmodule Mud.World.Room.Content do
 
   defstruct features: [], users: [], mobs: [], items: []
 
+  def spawn(room, id, type, template) do
+    IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
+    object = apply(Mud.Repo, type, [template]) |> Map.put(:id, id)
+    IO.inspect object
+    create(room, object)
+  end    
+
   # spawns an object in a room
   def spawn(room, type, template) do
     IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"

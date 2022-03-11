@@ -1,12 +1,13 @@
 defmodule Mud do
-  alias Mud.{World}
+  alias Mud.{World, Character, Registry}
 
   @default_loc {1,1,1}
 
   def system_start(id) do
     children = [
-      Mud.Registry,
-      {World, id}
+      Registry,
+      {World, id},
+      Character.UserSupervisor
     ]
     Supervisor.start_link(children, strategy: :one_for_one)
   end
@@ -39,6 +40,17 @@ defmodule Mud do
       verb: :go
     }
     Mud.World.RoomServer.input({1,1,1}, term)
+  end
+
+  def spawn2() do
+    opts = %{
+      id: Mud.Id.generate(),
+      template_id: "orc captain",
+      room_id: {1,1,1}
+    }
+    start()
+    Character.UserSupervisor.start_user(opts)
+    Character.get(opts.id)
   end
 
   def room_id(world_id, zone_id, room_id), do: {world_id, zone_id, room_id}

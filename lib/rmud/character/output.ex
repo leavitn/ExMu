@@ -8,6 +8,8 @@ defmodule Mud.Character.Output.Spaces do
 
   defguardp is_punctuation(c) when c in [?., ?!, ??]
 
+# like Enum.intersperse(?\s) EXCEPT
+#   doesn't put a space between the last word and punctuation
   def add_spaces([]), do: []
   def add_spaces([h, x]) when is_punctuation(x), do: [h, x] # punctuation
   def add_spaces([h]), do: [h | add_spaces([])]
