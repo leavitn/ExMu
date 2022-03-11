@@ -23,14 +23,6 @@ defmodule Mud.World.Room.Content do
     create(room, object)
   end
 
-  # spawns an object in a room
-  def spawn(room, type, template) do
-    IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
-    object = apply(Mud.Repo, type, [template])
-    IO.inspect object
-    create(room, object)
-  end
-
   @doc "returns the result of a keyword search for an object in a room"
   def query(room, list_name, n \\ 1, phrase)
   def query(room, :all, n, phrase) do
