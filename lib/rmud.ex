@@ -19,23 +19,22 @@ defmodule Mud do
   end
 
   def spawn() do
+    id = Mud.Id.generate()
     op = %{
       module: Mud.World.Room.Content,
       fun: :spawn,
-      args: [:mob, "orc captain"]
+      args: [id, :mob, "orc captain"]
     }
     World.RoomServer.operation({1,1,1}, op)
+    id
   end
 
   def move() do
     start()
-    spawn()
+    id = spawn()
 
-    {:ok, mob} = Mud.World.Room.Info.find_mob(
-      Mud.World.RoomServer.get({1,1,1}),
-      "orc captain")
     term = %{
-      subject: mob.id,
+      subject: id,
       dobj: :south,
       verb: :go
     }

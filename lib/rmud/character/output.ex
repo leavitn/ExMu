@@ -49,7 +49,7 @@ defmodule Mud.Character.Output do
   defp extract_and_transform(term, key) do
     case InputTerm.get!(term, key) do
       x when is_atom(x) -> to_string(x)
-      x when is_map(x) -> Map.get(x, :render_text)
+      x when is_map(x) -> Map.get(x, :short_desc)
     end
   end
 

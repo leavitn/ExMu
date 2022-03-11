@@ -10,6 +10,7 @@
 # Score won't show h/m/v stats, you'll get that enough from the prompt
 
 defmodule Mud.Character do
+  defstruct [:id, :template_id, :room_id, :public, :private]
   alias Mud.{Registry, Repo, World}
   alias World.RoomServer
 
@@ -33,8 +34,9 @@ defmodule Mud.Character do
   end
 
   @impl true
-  def handle_continue(:get_data, state) do
-    state = apply(Repo, :mob, [state.template_id]) |> Map.merge(state)
+  def handle_continue(:get_data, options) do
+    state = struct!(__MODULE__, Map.to_list(options))
+    state = Map.put(state, :public, apply(Repo, :mob, [state.template_id]))
     RoomServer.spawn(state.room_id, state.id, :mob, state.template_id)
     {:noreply, state}
   end

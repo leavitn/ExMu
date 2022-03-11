@@ -1,5 +1,5 @@
 defmodule Mud.Repo do
-  alias Mud.{Id, World}
+  alias Mud.{World}
   alias World.{Room, Room.Exit}
   alias World.Room.Content.{Mob}
 
@@ -14,6 +14,6 @@ defmodule Mud.Repo do
   end
 
   def mob("orc captain" = name) do
-    struct!(Mob, render_text: name, id: Id.create(Mob))
+    struct!(Mob, short_desc: name)
   end
 end

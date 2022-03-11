@@ -1,6 +1,6 @@
 defmodule Mud.World.Room.Content.Defaults do
   @defaults [
-    :id, :render_text, aliases: []
+    :id, :short_desc, aliases: []
   ]
 
   def get(), do: @defaults
@@ -21,7 +21,7 @@ defmodule Mud.World.Room.Content do
     object = apply(Mud.Repo, type, [template]) |> Map.put(:id, id)
     IO.inspect object
     create(room, object)
-  end    
+  end
 
   # spawns an object in a room
   def spawn(room, type, template) do
