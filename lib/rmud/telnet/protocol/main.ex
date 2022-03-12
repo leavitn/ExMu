@@ -9,7 +9,7 @@ defmodule Mud.Telnet.Protocol.Main do
 
   def parse(data) do
     case data do
-      "dump\r\n" -> {:ok, %{verb: :dump}, []}
+      "dump\r\n" -> {:ok, %{verb: :dump}, []} # temporary - for testing purposes
       _ -> Character.Parser.process(data)
     end
   end

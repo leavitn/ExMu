@@ -78,8 +78,13 @@ defmodule Mud.World.Room.Content do
 end
 
 defmodule Mud.World.Room.Commands do
-  alias Mud.World.Room.Info
+  # to add commands that run out of the room process
+  #   1. Add verb to @commands
+  #   2. add command function
 
+  alias Mud.World.Room.Info
+  
+  # character command verbs must be added here to be valid
   @commands %{
     go: true
   }

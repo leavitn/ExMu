@@ -23,7 +23,11 @@ end
 
 defmodule Mud.Character.Commands do
   alias Mud.World.Room.Info
+  # to add commands that run out of the character process
+  #   1. Add verb to @commands
+  #   2. add command function
 
+  # character command verbs must be added here to be valid
   @commands %{
     dump: true
   }
@@ -76,8 +80,9 @@ defmodule Mud.Character do
 
   @impl true
   def handle_continue(:get_data, options) do
-    state = struct!(__MODULE__, Map.to_list(options))
-    state = Map.put(state, :public, apply(Repo, :mob, [state.template_id]))
+    state =
+      struct!(__MODULE__, Map.to_list(options))
+      |> Map.put(:public, apply(Repo, :mob, [state.template_id]))
     RoomServer.spawn(state.room_id, state.id, :mob, state.template_id)
     {:noreply, state}
   end
