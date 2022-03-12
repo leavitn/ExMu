@@ -83,7 +83,7 @@ defmodule Mud.World.Room.Commands do
   #   2. add command function
 
   alias Mud.World.Room.Info
-  
+
   # character command verbs must be added here to be valid
   @commands %{
     go: true
@@ -129,8 +129,4 @@ defmodule Mud.World.Room do
     %Room{room | obvious_exits: obvious}
   end
 
-  def handle_input(room, parsed_term) do
-    with {:ok, fun} <- __MODULE__.Info.get_verb_fun(room, parsed_term.verb), do:
-      fun.(parsed_term)
-  end
 end

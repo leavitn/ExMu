@@ -9,20 +9,8 @@
 # room will contain aliases, h/m/v stats for combat
 # Score won't show h/m/v stats, you'll get that enough from the prompt
 
-defmodule Mud.Character.Info do
-
-  def get_verb_fun(char, verb) do
-    alias Mud.Character.Commands
-    case Commands.validate(verb) do
-      true -> {:ok, &apply(Commands, verb, [char, &1])}
-      false -> {:error, {:command, :not_found}}
-    end
-  end
-
-end
-
 defmodule Mud.Character.Commands do
-  alias Mud.World.Room.Info
+
   # to add commands that run out of the character process
   #   1. Add verb to @commands
   #   2. add command function
@@ -41,20 +29,11 @@ defmodule Mud.Character.Commands do
 
 end
 
-defmodule Mud.Character.Private do
-  alias Mud.Character.Info
-
-  def handle_input(char, parsed_term) do
-    with {:ok, fun} <- Info.get_verb_fun(char, parsed_term.verb), do:
-      fun.(parsed_term)
-  end
-
-end
-
 defmodule Mud.Character do
   defstruct [:id, :template_id, :connection, :room_id, :public, :private]
   alias Mud.{Registry, Repo, World}
   alias World.RoomServer
+  alias Mud.Character.Command
 
   use GenServer
 
@@ -80,9 +59,8 @@ defmodule Mud.Character do
 
   @impl true
   def handle_continue(:get_data, options) do
-    state =
-      struct!(__MODULE__, Map.to_list(options))
-      |> Map.put(:public, apply(Repo, :mob, [state.template_id]))
+    state = struct!(__MODULE__, Map.to_list(options))
+    state = Map.put(state, :public, apply(Repo, :mob, [state.template_id]))
     RoomServer.spawn(state.room_id, state.id, :mob, state.template_id)
     {:noreply, state}
   end
@@ -95,7 +73,7 @@ defmodule Mud.Character do
   @impl true
   def handle_cast({:input, term}, state) do
     state =
-      case __MODULE__.Private.handle_input(state, term) do
+      case Command.handle_input(__MODULE__, state, term) do
         :ok -> state
         {:ok, state} -> state
         {:error, error} ->
