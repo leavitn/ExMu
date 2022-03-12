@@ -1,5 +1,5 @@
 defmodule Mud do
-  alias Mud.{World, Character, Registry}
+  alias Mud.{World, Character, Registry, Telnet}
 
   @default_loc {1,1,1}
 
@@ -7,7 +7,8 @@ defmodule Mud do
     children = [
       Registry,
       {World, id},
-      Character.UserSupervisor
+      Character.UserSupervisor,
+      Telnet.Listener
     ]
     Supervisor.start_link(children, strategy: :one_for_one)
   end

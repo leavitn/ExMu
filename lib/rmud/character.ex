@@ -48,7 +48,7 @@ defmodule Mud.Character.Private do
 end
 
 defmodule Mud.Character do
-  defstruct [:id, :template_id, :room_id, :public, :private]
+  defstruct [:id, :template_id, :connection, :room_id, :public, :private]
   alias Mud.{Registry, Repo, World}
   alias World.RoomServer
 

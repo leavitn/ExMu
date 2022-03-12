@@ -12,6 +12,8 @@ defmodule Mud.Telnet.Queue do
     overflow_flag: :clear
   ]
 
+  def new(opts \\ []), do: struct!(__MODULE__, opts)
+
   def push(queue, item) do
     case queue.count < queue.capacity do
       true -> {:ok, append(queue, item)}
@@ -41,9 +43,9 @@ defmodule Mud.Telnet.Queue do
 
   defp overflow(queue) do
      case queue.overflow_flag do
-       :clear -> struct!(__MODULE__, capacity: queue.capacity)
-       :drop -> queue
-       _ -> struct!(__MODULE__, capacity: queue.capacity)
+       :clear -> new(capacity: queue.capacity) # clear the queue
+       :drop -> queue # drop input
+       _ -> new(capacity: queue.capacity)
      end
   end
 
