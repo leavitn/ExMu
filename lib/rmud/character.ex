@@ -9,6 +9,44 @@
 # room will contain aliases, h/m/v stats for combat
 # Score won't show h/m/v stats, you'll get that enough from the prompt
 
+defmodule Mud.Character.Info do
+
+  def get_verb_fun(char, verb) do
+    alias Mud.Character.Commands
+    case Commands.validate(verb) do
+      true -> {:ok, &apply(Commands, verb, [char, &1])}
+      false -> {:error, {:command, :not_found}}
+    end
+  end
+
+end
+
+defmodule Mud.Character.Commands do
+  alias Mud.World.Room.Info
+
+  @commands %{
+    dump: true
+  }
+
+  def validate(verb), do: Map.get(@commands, verb, false)
+
+  def dump(state, _term) do
+    IO.inspect state
+    :ok
+  end
+
+end
+
+defmodule Mud.Character.Private do
+  alias Mud.Character.Info
+
+  def handle_input(char, parsed_term) do
+    with {:ok, fun} <- Info.get_verb_fun(char, parsed_term.verb), do:
+      fun.(parsed_term)
+  end
+
+end
+
 defmodule Mud.Character do
   defstruct [:id, :template_id, :room_id, :public, :private]
   alias Mud.{Registry, Repo, World}
@@ -22,7 +60,10 @@ defmodule Mud.Character do
 
   def via_tuple(id), do: Registry.via_tuple({__MODULE__, id})
 
-  #def input(id, parsed_term), do: GenServer.cast(via_tuple(id), {:input, parsed_term})
+  def input(id, parsed_term) do
+    GenServer.cast(via_tuple(id), {:input, parsed_term})
+  end
+
   def get(id) do
     GenServer.call(via_tuple(id), :get)
   end
@@ -46,4 +87,16 @@ defmodule Mud.Character do
     {:reply, state, state}
   end
 
+  @impl true
+  def handle_cast({:input, term}, state) do
+    state =
+      case __MODULE__.Private.handle_input(state, term) do
+        :ok -> state
+        {:ok, state} -> state
+        {:error, error} ->
+          IO.inspect error #TODO send to connection process or notify AI
+          state
+      end
+    {:noreply, state}
+  end
 end

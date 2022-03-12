@@ -83,6 +83,7 @@ defmodule Mud.World.Room.Commands do
   @commands %{
     go: true
   }
+
   def validate(verb), do: Map.get(@commands, verb, false)
 
   def go(room, term) do

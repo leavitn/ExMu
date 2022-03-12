@@ -50,6 +50,16 @@ defmodule Mud do
     start()
     Character.UserSupervisor.start_user(opts)
     Character.get(opts.id)
+    opts.id
+  end
+
+  def dump() do
+    id = spawn2()
+    term = %{
+      subject: id,
+      verb: :dump
+    }
+    Character.input(id, term)
   end
 
   def room_id(world_id, zone_id, room_id), do: {world_id, zone_id, room_id}
