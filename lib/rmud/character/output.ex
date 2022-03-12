@@ -23,7 +23,7 @@ defmodule Mud.Character.Output do
     This was elected for simplicity.
   """
 
-  alias Mud.Character.Input.InputTerm
+  alias Mud.Character.Output.OutputTerm
   import __MODULE__.Spaces
 
   def process(term, witness), do: process(term, term.pattern, witness)
@@ -47,7 +47,7 @@ defmodule Mud.Character.Output do
   defp conjugate(verb, _, _), do: [verb, ?s]
 
   defp extract_and_transform(term, key) do
-    case InputTerm.get!(term, key) do
+    case OutputTerm.get!(term, key) do
       x when is_atom(x) -> to_string(x)
       x when is_map(x) -> Map.get(x, :short_desc)
     end

@@ -11,8 +11,7 @@ defmodule Mud.World.Room.Movement do
   """
 
   alias Mud.World.{Room, Room.Content, Room.Info, Event, Zone}
-  alias Mud.Character.Input
-  alias Input.{InputTerm, Pattern}
+  alias Mud.Character.Output.{OutputTerm, Pattern}
 
   # the parsed_term is NOT used for the event
   # Reason: to reduce amount of data passed around via message passing
@@ -55,8 +54,8 @@ defmodule Mud.World.Room.Movement do
       state: room
     ]
     opts
-    |> InputTerm.new()
-    |> InputTerm.notify(:all, Pattern.run(:standard))
+    |> OutputTerm.new()
+    |> OutputTerm.notify(:all, Pattern.run(:standard))
     |> Map.get(:events)
     |> List.first()
     |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes
@@ -74,8 +73,8 @@ defmodule Mud.World.Room.Movement do
       state: room
     ]
     opts
-    |> InputTerm.new()
-    |> InputTerm.notify(:all, Pattern.run(:dobj, preposition: "from the"))
+    |> OutputTerm.new()
+    |> OutputTerm.notify(:all, Pattern.run(:dobj, preposition: "from the"))
     |> Map.get(:events)
     |> List.first()
     |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes

@@ -1,4 +1,4 @@
-defmodule Mud.Character.Input.InputTerm do
+defmodule Mud.Character.Output.OutputTerm do
   defstruct [
     :subject, :verb, :dobj, :iobj,
     :state,
@@ -96,7 +96,7 @@ defmodule Mud.Character.Input.InputTerm do
 
 end
 
-defmodule Mud.Character.Input.Pattern do
+defmodule Mud.Character.Output.Pattern do
   @doc """
     returns output pattern templates
     Each part of the template will reference a key in the request map
