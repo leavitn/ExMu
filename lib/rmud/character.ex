@@ -33,7 +33,6 @@ defmodule Mud.Character do
   defstruct [:id, :template_id, :connection, :room_id, :public, :private]
   alias Mud.{Registry, Repo, World}
   alias World.RoomServer
-  alias Mud.Character.Command
 
   use GenServer
 
@@ -72,8 +71,9 @@ defmodule Mud.Character do
 
   @impl true
   def handle_cast({:input, term}, state) do
+    alias Mud.Character.Input
     state =
-      case Command.handle_input(__MODULE__, state, term) do
+      case Input.run(__MODULE__, state, term) do
         :ok -> state
         {:ok, state} -> state
         {:error, error} ->

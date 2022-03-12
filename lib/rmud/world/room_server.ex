@@ -1,7 +1,6 @@
 defmodule Mud.World.RoomServer do
   alias Mud.{Registry, Repo}
   alias Mud.World.{Room, Event, Zone}
-  alias Mud.Character.Command
 
   use GenServer
 
@@ -66,8 +65,9 @@ defmodule Mud.World.RoomServer do
 
   @impl true
   def handle_cast({:input, parsed_term}, state) do
+    alias Mud.Character.Input
     state =
-      case Command.handle_input(Room, state, parsed_term) do
+      case Input.run(Room, state, parsed_term) do
         :ok -> state
         {:ok, new_state} -> new_state
         {:error, error} ->

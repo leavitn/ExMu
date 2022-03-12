@@ -1,11 +1,11 @@
-defmodule Mud.Character.Command do
+defmodule Mud.Character.Input do
 
   @moduledoc """
     Module for generically matching a parsed_term to a command and executing them.
     Actual commands are located in the Callback.Commands module
   """
 
-  def handle_input(callback, state, parsed_term) do
+  def run(callback, state, parsed_term) do
     with {:ok, fun} <- get_verb_fun(callback, state, parsed_term.verb), do:
       fun.(parsed_term)
   end
