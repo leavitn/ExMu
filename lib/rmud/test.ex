@@ -17,7 +17,7 @@ defmodule Mud.Test.MockData.Room do
   def mock_mob() do
     args = [
       id: 1,
-      render_text: "orc captain",
+      short_desc: "orc captain",
       aliases: ["orc", "captain"]
     ]
     struct!(Content.Mob, args)
@@ -26,7 +26,7 @@ defmodule Mud.Test.MockData.Room do
   def mock_mob2() do
     args = [
       id: 2,
-      render_text: "beth"
+      short_desc: "beth"
     ]
     struct!(Content.Mob, args)
   end

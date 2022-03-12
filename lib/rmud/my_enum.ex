@@ -8,7 +8,7 @@ defmodule Mud.MyEnum do
     end)
   end
 
-  defp get_search_data(obj), do: [obj.render_text | obj.aliases]
+  defp get_search_data(obj), do: [obj.short_desc | obj.aliases]
 
   @doc "like Enum.find, except ignores the first n - 1 results"
   def find_nth(list, n, fun) when n < 2, do: Enum.find(list, fun)
