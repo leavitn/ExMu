@@ -14,7 +14,7 @@ defmodule Mud.Character.Command do
   #    if the verb cannot be performed in the room
   defp get_verb_fun(callback, state, verb) do
     commands = Module.concat(callback, Commands)
-    case commands.validate(verb) do
+    case commands.exist?(verb) do
       true -> {:ok, &apply(commands, verb, [state, &1])}
       false -> {:error, {:command, :not_found}}
     end

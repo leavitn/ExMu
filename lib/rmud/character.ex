@@ -20,7 +20,7 @@ defmodule Mud.Character.Commands do
     dump: true
   }
 
-  def validate(verb), do: Map.get(@commands, verb, false)
+  def exist?(verb), do: Map.get(@commands, verb, false)
 
   def dump(state, _term) do
     IO.inspect state

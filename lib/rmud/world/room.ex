@@ -89,7 +89,7 @@ defmodule Mud.World.Room.Commands do
     go: true
   }
 
-  def validate(verb), do: Map.get(@commands, verb, false)
+  def exist?(verb), do: Map.get(@commands, verb, false)
 
   def go(room, term) do
     alias Mud.World.Room.Movement

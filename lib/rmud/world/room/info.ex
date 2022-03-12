@@ -2,19 +2,6 @@ defmodule Mud.World.Room.Info do
   alias Mud.World.Room.Content
 
   @doc """
-    Recieves a verb and returns either the corresponding command function OR error
-      if the verb cannot be performed in the room
-  """
-  def get_verb_fun(room, verb) do
-    alias Mud.World.Room.Commands
-    case Commands.validate(verb) do
-      true -> {:ok, &apply(Commands, verb, [room, &1])}
-      false -> {:error, {:command, :not_found}}
-    end
-
-  end
-
-  @doc """
     returns the first exit key that matches room_id
   """
   def exit_keyword_lookup(room, room_id, side) when side in [:to_room, :from_room] do
@@ -73,7 +60,7 @@ defmodule Mud.World.Room.Info do
     Content.query(room, :items, n, phrase)
     |> error({:item, :not_found})
   end
-  
+
   defp error(result, error_message) do
     case result do
       x when x in [nil, false] -> {:error, error_message}
