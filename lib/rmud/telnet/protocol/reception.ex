@@ -32,7 +32,7 @@ defmodule Mud.Telnet.Protocol.Reception do
   end
 
   defp login(name, state) do
-    opts = %{id: name, connection: self(), template_id: name}
+    opts = %{id: name, connection: self(), template_id: name, room_id: {1,1,1}}
     case Character.UserSupervisor.start_user(opts) do
       {:error, {:already_started, _pid}} ->
         output("Error: already logged in. Please submit a new name: ", state)

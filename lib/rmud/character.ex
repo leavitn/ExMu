@@ -17,8 +17,11 @@ defmodule Mud.Character.Commands do
 
   # character command verbs must be added here to be valid
   @commands %{
-    dump: true
+    dump: true, # testing only - remove from prod
+    look: true
   }
+
+  alias Mud.World.RoomServer
 
   def exist?(verb), do: Map.get(@commands, verb, false)
 
@@ -27,6 +30,16 @@ defmodule Mud.Character.Commands do
     :ok
   end
 
+  def look(state, term) do
+    case term.dobj do
+      :room -> to_room(state.room_id, term)
+    end
+  end
+
+  defp to_room(room_id, term) do
+    term = Map.delete(term, :state)
+    RoomServer.input(room_id, term)
+  end
 end
 
 defmodule Mud.Character do
@@ -49,6 +62,15 @@ defmodule Mud.Character do
   def get(id) do
     GenServer.call(via_tuple(id), :get)
   end
+
+  def notify(id, output) do
+    GenServer.cast(via_tuple(id), {:output, output})
+  end
+
+  def update_location(char_id, room_id) do
+    GenServer.cast(via_tuple(char_id), {:location, room_id})
+  end
+
   # implementation functions
 
   @impl true
@@ -70,8 +92,14 @@ defmodule Mud.Character do
   end
 
   @impl true
+  def handle_call({:location, room_id}, _, state) do
+    {:reply, :ok, Map.replace(state, :room_id, room_id)}
+  end
+
+  @impl true
   def handle_cast({:input, term}, state) do
     alias Mud.Character.Input
+    term = term |> Map.put(:subject, state.id) |> Map.put(:state, state)
     state =
       case Input.run(__MODULE__, state, term) do
         :ok -> state
@@ -82,4 +110,18 @@ defmodule Mud.Character do
       end
     {:noreply, state}
   end
+
+  @impl true
+  def handle_cast({:output, term}, state) do
+    alias Mud.Telnet.Protocol
+    alias Mud.Character.Output
+
+    case state.connection do
+      nil -> nil
+      connection -> Protocol.push(connection, Output.process(term, state.id))
+    end
+
+    {:noreply, state}
+  end
+
 end

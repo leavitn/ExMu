@@ -14,7 +14,15 @@ defmodule Mud.World.Room.Content do
   alias Mud.{World.Room, MyEnum}
   alias __MODULE__.{Mob}
 
-  defstruct features: [], users: [], mobs: [], items: []
+  defstruct users: [], mobs: [], items: []
+
+  def long_descs(room), do: Map.put(room, :content, _long_descs(room.content))
+  defp _long_descs(content) do
+    Enum.reduce([:users, :mobs, :items], content, fn list, content ->
+      new_list = Map.get(content, list, []) |> Enum.map(&(&1.short_desc))
+      Map.put(content, list, new_list)
+     end)
+  end
 
   def spawn(room, id, type, template) do
     IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
@@ -82,11 +90,14 @@ defmodule Mud.World.Room.Commands do
   #   1. Add verb to @commands
   #   2. add command function
 
-  alias Mud.World.Room.Info
+  alias Mud.World.Room.{Content, Info}
+  alias Mud.Character.Output.OutputTerm
+  alias Mud.Character
 
   # character command verbs must be added here to be valid
   @commands %{
-    go: true
+    go: true,
+    look: true
   }
 
   def exist?(verb), do: Map.get(@commands, verb, false)
@@ -96,6 +107,19 @@ defmodule Mud.World.Room.Commands do
     with {:ok, character} <- Info.find_id(room, term.subject),
          {:ok, to_room} <- Info.find_exit_path(room, term.dobj) do
       Movement.init(room, character, to_room)
+    end
+  end
+
+  def look(room, term) do
+    case term.dobj do
+      :room ->
+        opts = [
+          subject: term.subject,
+          witnesses: [term.subject],
+          dobj: Content.long_descs(room) |> Map.delete(:exits),
+          pattern: :room
+        ]
+        Character.notify(term.subject, OutputTerm.new(opts))
     end
   end
 

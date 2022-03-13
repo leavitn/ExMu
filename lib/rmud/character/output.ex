@@ -29,6 +29,8 @@ defmodule Mud.Character.Output do
   def process(term, witness), do: process(term, term.pattern, witness)
   def process(term, pattern, witness)
     when is_list(pattern), do: replace(term, pattern, witness)
+  def process(term, pattern, witness)
+    when is_atom(pattern), do: build(term, pattern, witness)
 #  def process(term, pattern, _ )
 #    when is_atom(pattern), do: template(input_term, pattern)
 
@@ -50,6 +52,12 @@ defmodule Mud.Character.Output do
     case OutputTerm.get!(term, key) do
       x when is_atom(x) -> to_string(x)
       x when is_map(x) -> Map.get(x, :short_desc)
+    end
+  end
+
+  defp build(term, template, _witness) do
+    case template do
+      :room -> __MODULE__.Template.room(term)
     end
   end
 

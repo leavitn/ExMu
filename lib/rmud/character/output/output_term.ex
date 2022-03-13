@@ -2,8 +2,10 @@ defmodule Mud.Character.Output.OutputTerm do
   defstruct [
     :subject, :verb, :dobj, :iobj,
     :state,
-    events: [], witnesses: [], pattern: []
+    witnesses: [], pattern: []
   ]
+
+  @notify_module Mud.Character
 
   @type error :: {:error, atom()} | {:error, {atom(), atom()}}
   @type t :: %__MODULE__{} | error
@@ -18,20 +20,23 @@ defmodule Mud.Character.Output.OutputTerm do
   """
   @spec update(t, atom(), atom()) :: t
   def update({:error, error}, _, _), do: {:error, error}
-  def update(term, key, fun_name) do
+  def update(term, key, fun_name) when is_atom(fun_name) do
     fun = get_fun(term, fun_name)
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
   end
+  def update(term, key, fun) when is_function(fun) do
+    Map.update!(term, key, fun)
+  end
 
-  @doc "adds output pattern / templates to result and list of witnesses"
+  @doc "notifies witnesses event occured"
   @spec notify(t, atom(), list()) :: t
   def notify({:error, error}, _, _), do: {:error, error}
   def notify(term, witness, template) do
-    term
-    |> witnesses(witness)
-    |> Map.replace(:pattern, template)
-    |> event()
+    term = term |> witnesses(witness) |> Map.replace(:pattern, template)
+    IO.inspect term
+    output = Map.drop(term, [:witnesses, :state])
+    Enum.each(term.witnesses, &@notify_module.notify(&1, output))
   end
 
   def put({:error, error}, _, _), do: {:error, error}
@@ -47,7 +52,7 @@ defmodule Mud.Character.Output.OutputTerm do
   defp witnesses(term, witness) do
     case witness do
       :all -> update(term, :witnesses, :get_mob_ids)
-      :subject -> Map.replace(term, :witnesses, subject_id(term))
+      :subject -> Map.replace(term, :witnesses, subject_id(term) |> List.wrap())
     end
   end
 
@@ -77,21 +82,6 @@ defmodule Mud.Character.Output.OutputTerm do
       :self -> {:ok, :self}
       val -> apply(module, fun_name, [state, val])
     end
-  end
-
-  # """
-  #  transforms request into an event by placing a copy of the current request,
-  #    minus the world state, in a list within the request.
-  # """
-  @spec event(t) :: t
-  defp event(term) do
-    event = Map.drop(term, [:events, :state])
-    %{
-      term |
-        events: [event | term.events],
-        witnesses: [], # reset patterns and witnesses
-        pattern: []  # for next event
-    }
   end
 
 end
