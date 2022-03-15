@@ -24,8 +24,8 @@ defmodule Mud.Character.Output.OutputTerm do
       _update(acc, state, key, fun_name)
     end)
   end
-  def _update({:error, error}, _, _, _), do: {:error, error}
-  def _update(term, state, key, fun_name) when is_atom(fun_name) do
+  defp _update({:error, error}, _, _, _), do: {:error, error}
+  defp _update(term, state, key, fun_name) when is_atom(fun_name) do
     fun = get_fun(state, fun_name)
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
