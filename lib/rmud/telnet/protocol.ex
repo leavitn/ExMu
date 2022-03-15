@@ -72,6 +72,7 @@ defmodule Mud.Telnet.Protocol do
   #      Main mode is the primary mode users interact with the app
 
   def handle_info({:tcp, _socket, input}, state) do
+    IO.inspect input
     mode = state.mode
     state =
       case mode.parse(input) do # convert binary to parsed_term
@@ -124,14 +125,17 @@ defmodule Mud.Telnet.Protocol do
     output(["Error: ", error], state)
   end
   def output(output, state) do
-    render = IO.iodata_to_binary([output, "\r\n", @go_ahead])
+    render = IO.iodata_to_binary([output, "\r\n", prompt(state), @go_ahead])
     state.transport.send(state.socket, render)
   end
 
+  def prompt(_state), do: "> "
+
   #TODO interpret errors to provide better feedback
   # e.g. instead of :command :not_found -> "Command not found."
-  defp error_to_string(error) when is_atom(error) do
+  defp error_to_string(error) do
     cond do
+      is_binary(error) -> error
       is_atom(error) -> to_string(error)
       is_tuple(error) -> "#{inspect error}"
     end
