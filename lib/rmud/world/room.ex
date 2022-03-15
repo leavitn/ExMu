@@ -128,7 +128,6 @@ defmodule Mud.World.Room.Commands do
 end
 
 defmodule Mud.World.Room do
-  alias __MODULE__
   alias __MODULE__.{Exit, Content}
 
   defstruct [
@@ -141,10 +140,11 @@ defmodule Mud.World.Room do
 
   def new(opts) do
     struct!(__MODULE__, opts)
-    |> update_obvious_exits()
+    |> update_obvious_exits
   end
 
-  defp update_obvious_exits(%{exits: %{}} = room), do: room
+  defp update_obvious_exits(%{exits: exits} = room)
+    when exits == %{}, do: room
   defp update_obvious_exits(room) do
     obvious =
       room.exits
@@ -152,7 +152,7 @@ defmodule Mud.World.Room do
       |> Stream.filter(&(&1.obvious?))
       |> Stream.map(&(&1.keyword))
       |> Exit.sort()
-    %Room{room | obvious_exits: obvious}
+    %{room | obvious_exits: obvious}
   end
 
 end
