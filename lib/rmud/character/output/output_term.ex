@@ -18,15 +18,17 @@ defmodule Mud.Character.Output.OutputTerm do
     Instead of receiving fun, receives a fun_name
       and the function is extrapolated from the input_term.state module
   """
-  @spec update(t, atom(), atom()) :: t
-  def update({:error, error}, _, _), do: {:error, error}
-  def update(term, key, fun_name) when is_atom(fun_name) do
-    fun = get_fun(term, fun_name)
+
+  def update(term, state, instructions) when is_list(instructions) do
+    Enum.reduce(instructions, term, fn {key, fun_name}, acc ->
+      _update(acc, state, key, fun_name)
+    end)
+  end
+  def _update({:error, error}, _, _, _), do: {:error, error}
+  def _update(term, state, key, fun_name) when is_atom(fun_name) do
+    fun = get_fun(state, fun_name)
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
-  end
-  def update(term, key, fun) when is_function(fun) do
-    Map.update!(term, key, fun)
   end
 
   @doc "notifies witnesses event occured"
@@ -76,10 +78,9 @@ defmodule Mud.Character.Output.OutputTerm do
   # function = <StateModule>.Info.fun_name
   # so if State == Room and fun_name = find_mob, Room.Info.find_mob
   @spec get_fun(t, atom()) :: fun()
-  defp get_fun(%{state: state}, fun_name) do
+  defp get_fun(state, fun_name) do
     module = Module.concat(state.__struct__, :Info)
     fn
-      :self -> {:ok, :self}
       val -> apply(module, fun_name, [state, val])
     end
   end
