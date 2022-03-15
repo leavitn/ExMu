@@ -16,6 +16,7 @@ defmodule Mud.World.Room.Content do
 
   defstruct users: [], mobs: [], items: []
 
+  @doc "Reduce Room.Content lists to long_descs only"
   def long_descs(room), do: Map.put(room, :content, _long_descs(room.content))
   defp _long_descs(content) do
     Enum.reduce([:users, :mobs, :items], content, fn list, content ->
@@ -24,6 +25,7 @@ defmodule Mud.World.Room.Content do
      end)
   end
 
+  @doc "spawn an object of type with id in a room via the template"
   def spawn(room, id, type, template) do
     IO.puts "Spawning #{type} #{template} in room #{inspect room.id}"
     object = apply(Mud.Repo, type, [template]) |> Map.put(:id, id)
