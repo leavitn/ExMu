@@ -21,36 +21,27 @@ defmodule Mud.Character.Output.OutputTerm do
 
   def update(term, state, instructions) when is_list(instructions) do
     Enum.reduce(instructions, term, fn {key, fun_name}, acc ->
-      _update(acc, state, key, fun_name)
+      _update(acc, key, fun_name)
     end)
   end
-  defp _update({:error, error}, _, _, _), do: {:error, error}
-  defp _update(term, state, key, fun_name) when is_atom(fun_name) do
-    fun = get_fun(state, fun_name)
+  defp update({:error, error}, _, _), do: {:error, error}
+  defp update(term, key, fun) do
+    fun = get_fun(term.state, fun)
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
   end
 
   @doc "notifies witnesses event occured"
-  @spec notify(t, atom(), list()) :: t
   def notify({:error, error}, _, _), do: {:error, error}
   def notify(term, witness, template) do
-    term = term |> witnesses(witness) |> Map.replace(:pattern, template)
-    IO.inspect term
-    output = Map.drop(term, [:witnesses, :state])
+    term = term |> witnesses(term, witness) |> Map.replace(:pattern, template)
+    output = Map.delete(term, :witnesses)
     Enum.each(term.witnesses, &@notify_module.notify(&1, output))
   end
 
   def put({:error, error}, _, _), do: {:error, error}
   def put(term, key, val), do: Map.put(term, key, val)
 
-  def put_and_update(term, key, val, update_fun_name) do
-    term
-    |> put(key, val)
-    |> update(key, update_fun_name)
-  end
-
-  @spec witnesses(t, atom()) :: t
   defp witnesses(term, witness) do
     case witness do
       :all -> update(term, :witnesses, :get_mob_ids)
@@ -77,8 +68,8 @@ defmodule Mud.Character.Output.OutputTerm do
 
   # function = <StateModule>.Info.fun_name
   # so if State == Room and fun_name = find_mob, Room.Info.find_mob
-  @spec get_fun(t, atom()) :: fun()
-  defp get_fun(state, fun_name) do
+  defp get_fun(_state, fun) when is_function(fun), do: fun
+  defp get_fun(state, fun_name) when is_atom(fun_name) do
     module = Module.concat(state.__struct__, :Info)
     fn
       val -> apply(module, fun_name, [state, val])

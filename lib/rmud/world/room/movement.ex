@@ -47,38 +47,26 @@ defmodule Mud.World.Room.Movement do
   # more verbose than if the parsed_term was passed in the event
   # but the reasoning is this reduces the amount of data deep copied between processes
   defp depart(event, room) do
-    opts = [
-      subject: event.character,
-      verb: :depart,
-      dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
-      state: room
-    ]
-    opts
-    |> OutputTerm.new()
-    |> OutputTerm.notify(:all, Pattern.run(:standard))
-    |> Map.get(:events)
-    |> List.first()
-    |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes
-    |> IO.puts
+    term = [
+        subject: event.character,
+        verb: :depart,
+        dobj: Info.exit_keyword_lookup(room, event.from_room, :to_room),
+      ]
+      |> OutputTerm.new()
+    {:ok, witnesses} = Info.get_mob_ids(room, [])
+    Enum.each(witnesses, &Mud.Character.notify(&1, term))
 
     Content.delete(room, event.character)
   end
 
   defp arrive(event, room) do
-    direction = Info.exit_keyword_lookup(room, event.to_room, :from_room)
-    opts = [
+    [
       subject: event.character,
       verb: :arrive,
-      dobj: direction,
-      state: room
+      dobj: Info.exit_keyword_lookup(room, event.to_room, :from_room)
     ]
-    opts
     |> OutputTerm.new()
-    |> OutputTerm.notify(:all, Pattern.run(:dobj, preposition: "from the"))
-    |> Map.get(:events)
-    |> List.first()
-    |> Mud.Character.Output.process(event.character) # TODO replace with notification to Character processes
-    |> IO.puts
+    |> OutputTerm.notify(room, :all, Pattern.run(:standard))
 
     Content.create(room, event.character)
   end

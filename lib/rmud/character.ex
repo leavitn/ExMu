@@ -18,7 +18,8 @@ defmodule Mud.Character.Commands do
   # character command verbs must be added here to be valid
   @commands %{
     dump: true, # testing only - remove from prod
-    look: true
+    look: true,
+    go: true
   }
 
   alias Mud.World.RoomServer
@@ -34,6 +35,12 @@ defmodule Mud.Character.Commands do
     case term.dobj do
       :room -> to_room(state.room_id, term)
     end
+  end
+
+  # Movement occurs in the room, but char process can veto the movement
+  # e.g. if the character is sleeping
+  def go(state, term) do
+    to_room(state.room_id, term)
   end
 
   defp to_room(room_id, term) do
@@ -99,7 +106,7 @@ defmodule Mud.Character do
   @impl true
   def handle_cast({:input, term}, state) do
     alias Mud.Character.Input
-    term = term |> Map.put(:subject, state.id) |> Map.put(:state, state)
+    term = term |> Map.put(:subject, state.id)
     state =
       case Input.run(__MODULE__, state, term) do
         :ok -> state

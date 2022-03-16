@@ -66,7 +66,6 @@ defmodule Mud.World.RoomServer do
   @impl true
   def handle_cast({:input, parsed_term}, state) do
     alias Mud.Character.Input
-    parsed_term = Map.put(parsed_term, :state, state)
     state =
       case Input.run(Room, state, parsed_term) do
         :ok -> state
