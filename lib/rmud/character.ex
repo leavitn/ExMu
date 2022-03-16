@@ -75,7 +75,7 @@ defmodule Mud.Character do
   end
 
   def update_location(char_id, room_id) do
-    GenServer.cast(via_tuple(char_id), {:location, room_id})
+    GenServer.call(via_tuple(char_id), {:location, room_id})
   end
 
   # implementation functions

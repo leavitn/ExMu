@@ -12,6 +12,7 @@ defmodule Mud.World.Room.Movement do
 
   alias Mud.World.{Room, Room.Content, Room.Info, Event, Zone}
   alias Mud.Character.Output.{OutputTerm, Pattern}
+  alias Mud.Character
 
   # the parsed_term is NOT used for the event
   # Reason: to reduce amount of data passed around via message passing
@@ -47,14 +48,14 @@ defmodule Mud.World.Room.Movement do
   # more verbose than if the parsed_term was passed in the event
   # but the reasoning is this reduces the amount of data deep copied between processes
   defp depart(event, room) do
-    term = [
-        subject: event.character,
-        verb: :depart,
-        dobj: Info.exit_keyword_lookup(room, event.from_room, :to_room),
-      ]
-      |> OutputTerm.new()
-    {:ok, witnesses} = Info.get_mob_ids(room, [])
-    Enum.each(witnesses, &Mud.Character.notify(&1, term))
+    [
+      subject: event.character,
+      verb: :depart,
+      dobj: Info.exit_keyword_lookup(room, event.to_room, :to_room),
+      state: room
+    ]
+    |> OutputTerm.new()
+    |> OutputTerm.notify(:all, Pattern.run(:standard))
 
     Content.delete(room, event.character)
   end
@@ -63,11 +64,13 @@ defmodule Mud.World.Room.Movement do
     [
       subject: event.character,
       verb: :arrive,
-      dobj: Info.exit_keyword_lookup(room, event.to_room, :from_room)
+      dobj: Info.exit_keyword_lookup(room, event.from_room, :from_room),
+      state: room
     ]
     |> OutputTerm.new()
-    |> OutputTerm.notify(room, :all, Pattern.run(:standard))
+    |> OutputTerm.notify(:all, Pattern.run(:standard))
 
+    :ok = Character.update_location(event.character.id, event.to_room) # move to Zone?
     Content.create(room, event.character)
   end
 end

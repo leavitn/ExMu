@@ -5,6 +5,8 @@ defmodule Mud.Character.Output.OutputTerm do
     events: [], witnesses: [], pattern: []
   ]
 
+  @notify_module Mud.Character
+
   @type error :: {:error, atom()} | {:error, {atom(), atom()}}
   @type t :: %__MODULE__{} | error
 
@@ -35,10 +37,13 @@ defmodule Mud.Character.Output.OutputTerm do
   @spec notify(t, atom(), list()) :: t
   def notify({:error, error}, _, _), do: {:error, error}
   def notify(term, witness, template) do
-    term
-    |> witnesses(witness)
-    |> Map.replace(:pattern, template)
-    |> event()
+    term =
+      term
+      |> witnesses(witness)
+      |> Map.replace(:pattern, template)
+    witnesses = term.witnesses
+    term = Map.drop(term, [:state, :witnesses])
+    Enum.each(witnesses, &apply(@notify_module, :notify, [&1, term]))
   end
 
   def put({:error, error}, _, _), do: {:error, error}
@@ -86,20 +91,6 @@ defmodule Mud.Character.Output.OutputTerm do
     end
   end
 
-  # """
-  #  transforms request into an event by placing a copy of the current request,
-  #    minus the world state, in a list within the request.
-  # """
-  @spec event(t) :: t
-  defp event(term) do
-    event = Map.drop(term, [:events, :state])
-    %{
-      term |
-        events: [event | term.events],
-        witnesses: [], # reset patterns and witnesses
-        pattern: []  # for next event
-    }
-  end
 
 end
 
