@@ -2,10 +2,8 @@ defmodule Mud.Character.Output.OutputTerm do
   defstruct [
     :subject, :verb, :dobj, :iobj,
     :state,
-    witnesses: [], pattern: []
+    events: [], witnesses: [], pattern: []
   ]
-
-  @notify_module Mud.Character
 
   @type error :: {:error, atom()} | {:error, {atom(), atom()}}
   @type t :: %__MODULE__{} | error
@@ -18,34 +16,45 @@ defmodule Mud.Character.Output.OutputTerm do
     Instead of receiving fun, receives a fun_name
       and the function is extrapolated from the input_term.state module
   """
+  @spec update(t, atom(), atom()) :: t
 
-  def update(term, state, instructions) when is_list(instructions) do
+  def update(term, instructions) when is_list(instructions) do
     Enum.reduce(instructions, term, fn {key, fun_name}, acc ->
-      _update(acc, key, fun_name)
+      update(acc, key, fun_name)
     end)
   end
-  defp update({:error, error}, _, _), do: {:error, error}
-  defp update(term, key, fun) do
-    fun = get_fun(term.state, fun)
+
+  def update({:error, error}, _, _), do: {:error, error}
+  def update(term, key, fun_name) do
+    fun = get_fun(term, fun_name)
     with {:ok, val} <- get!(term, key) |> then(fun), do:
       %{term | key => val}
   end
 
-  @doc "notifies witnesses event occured"
+  @doc "adds output pattern / templates to result and list of witnesses"
+  @spec notify(t, atom(), list()) :: t
   def notify({:error, error}, _, _), do: {:error, error}
   def notify(term, witness, template) do
-    term = term |> witnesses(term, witness) |> Map.replace(:pattern, template)
-    output = Map.delete(term, :witnesses)
-    Enum.each(term.witnesses, &@notify_module.notify(&1, output))
+    term
+    |> witnesses(witness)
+    |> Map.replace(:pattern, template)
+    |> event()
   end
 
   def put({:error, error}, _, _), do: {:error, error}
   def put(term, key, val), do: Map.put(term, key, val)
 
+  def put_and_update(term, key, val, update_fun_name) do
+    term
+    |> put(key, val)
+    |> update(key, update_fun_name)
+  end
+
+  @spec witnesses(t, atom()) :: t
   defp witnesses(term, witness) do
     case witness do
       :all -> update(term, :witnesses, :get_mob_ids)
-      :subject -> Map.replace(term, :witnesses, subject_id(term) |> List.wrap())
+      :subject -> Map.replace(term, :witnesses, subject_id(term))
     end
   end
 
@@ -68,12 +77,28 @@ defmodule Mud.Character.Output.OutputTerm do
 
   # function = <StateModule>.Info.fun_name
   # so if State == Room and fun_name = find_mob, Room.Info.find_mob
-  defp get_fun(_state, fun) when is_function(fun), do: fun
-  defp get_fun(state, fun_name) when is_atom(fun_name) do
+  @spec get_fun(t, atom()) :: fun()
+  defp get_fun(%{state: state}, fun_name) do
     module = Module.concat(state.__struct__, :Info)
     fn
+      :self -> {:ok, :self}
       val -> apply(module, fun_name, [state, val])
     end
+  end
+
+  # """
+  #  transforms request into an event by placing a copy of the current request,
+  #    minus the world state, in a list within the request.
+  # """
+  @spec event(t) :: t
+  defp event(term) do
+    event = Map.drop(term, [:events, :state])
+    %{
+      term |
+        events: [event | term.events],
+        witnesses: [], # reset patterns and witnesses
+        pattern: []  # for next event
+    }
   end
 
 end
